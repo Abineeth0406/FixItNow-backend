@@ -1,8 +1,25 @@
+# server:
+#   port: ${PORT:8080}
+
+
+# spring:
+#   datasource:
+#     url: ${MYSQL_URL}
+#     username: ${MYSQLUSER}
+#     password: ${MYSQLPASSWORD}
+#   jpa:
+#     hibernate:
+#       ddl-auto: update
+#      database-platform: org.hibernate.dialect.MySQL8Dialect
+#     show-sql: false
+
+
 server:
   port: ${PORT:8080}
 
-
 spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:prod}
   datasource:
     url: ${MYSQL_URL}
     username: ${MYSQLUSER}
@@ -10,5 +27,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-     database-platform: org.hibernate.dialect.MySQL8Dialect
+    database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: false
+
+jwt:
+  secret: ${JWT_SECRET}
+  expirationMs: ${JWT_EXPIRATION_MS}
