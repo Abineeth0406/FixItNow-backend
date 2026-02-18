@@ -192,6 +192,7 @@ public class SecurityConfig {
 
                 // Public routes
                 .requestMatchers("/").permitAll()
+                .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
 
