@@ -213,12 +213,17 @@ public class SecurityConfig {
 
     // Global CORS configuration
     @Bean
+
+    
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
     "http://localhost:5173",
-    "https://your-frontend-domain.com"
+    "https://fix-it-now-frontend-nu.vercel.app"
 ));
+
+// configuration.setAllowedOriginPatterns(List.of("*"));
+
 // update to deployed frontend URL later
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
