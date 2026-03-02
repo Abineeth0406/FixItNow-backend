@@ -1,8 +1,13 @@
 package com.app.FixItNow_backend.dto;
 
-import lombok.Data;
+import com.app.FixItNow_backend.entity.PriorityLevel;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class ApproveRequest {
-    private String departmentPhone;
+
+    private String departmentEmail;
+    private PriorityLevel priority;
 }

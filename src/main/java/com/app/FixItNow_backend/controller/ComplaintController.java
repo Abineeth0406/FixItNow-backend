@@ -1,9 +1,11 @@
 package com.app.FixItNow_backend.controller;
 
+import com.app.FixItNow_backend.dto.ComplaintStatsDTO;
 import com.app.FixItNow_backend.entity.Complaint;
 import com.app.FixItNow_backend.entity.ComplaintStatus;
 import com.app.FixItNow_backend.service.ComplaintService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -41,7 +43,7 @@ public class ComplaintController {
             Authentication authentication)
     throws IOException {
 
-        String phone = authentication.getName();
+        String email = authentication.getName();
 
         Complaint complaint = new Complaint();
         complaint.setTitle(title);
@@ -50,7 +52,7 @@ public class ComplaintController {
         complaint.setLatitude(latitude);
         complaint.setLongitude(longitude);
 
-        complaint.setUserPhone(phone);
+        complaint.setUserEmail(email);
         complaint.setStatus(ComplaintStatus.PENDING);
 
         if (file != null && !file.isEmpty()) {
@@ -73,21 +75,22 @@ public class ComplaintController {
 
 
 
-    @GetMapping
+    @GetMapping("/my")
     public List<Complaint> getMyComplaints(Authentication authentication) {
 
-        String phone = authentication.getName();
+        System.out.println("Authenticated user: " + authentication.getName());
 
-        return complaintService.getComplaintsByUser(phone);
+        String email = authentication.getName();
+        return complaintService.getComplaintsByUser(email);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteComplaint(@PathVariable Long id,
                                              Authentication authentication) {
 
-        String phone = authentication.getName();
+        String email = authentication.getName();
 
-        complaintService.deleteComplaint(id, phone);
+        complaintService.deleteComplaint(id, email);
 
         return ResponseEntity.ok("Complaint deleted successfully");
     }
@@ -97,13 +100,34 @@ public class ComplaintController {
 
     @GetMapping("/nearby")
     public List<Complaint> getNearbyComplaints(
-            @RequestParam Double lat,
-            @RequestParam Double lng,
-            @RequestParam(defaultValue = "5") Double radius
+            @RequestParam(required = false) ComplaintStatus status,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(defaultValue = "100") Double radius,
+            Authentication authentication
     ) {
-        return complaintService.getNearbyComplaints(lat, lng, radius);
+
+        String email = authentication.getName();
+        return complaintService.getNearbyComplaintsForUser(email, status, sortBy, radius);
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<ComplaintStatsDTO> getComplaintStats() {
+        return ResponseEntity.ok(complaintService.getComplaintStats());
+    }
+
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateComplaint(
+            @PathVariable Long id,
+            @RequestBody Complaint updatedComplaint,
+            Authentication authentication) {
+
+        String email = authentication.getName();
+
+        complaintService.updateComplaint(id, updatedComplaint, email);
+
+        return ResponseEntity.ok("Complaint updated successfully");
+    }
 
 
 

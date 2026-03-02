@@ -31,13 +31,15 @@ public class Complaint {
     private ComplaintStatus status;
     // PENDING, APPROVED, REJECTED, IN_PROGRESS, RESOLVED
 
-    private String userPhone; // phone of user who created complaint
+    private String userEmail; // phone of user who created complaint
 
     private String assignedDepartmentPhone;
 
-    private Integer priority = 0;
+    @Enumerated(EnumType.STRING)
+    private PriorityLevel priority = PriorityLevel.LOW;
 
     private String imagePath;
+//    private String departmentImagePath;
 
     @ManyToOne
     @JoinColumn(name = "assigned_department_id")
@@ -47,5 +49,21 @@ public class Complaint {
     private Double longitude;
     private String areaName;
 
+    @Transient
+    private Long upvotesCount;
 
+
+    @OneToMany(
+            mappedBy = "complaint",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<Upvote> upvotes = new HashSet<>();
+
+    @Column(name = "resolved_image_url")
+    private String resolvedImageUrl;
+
+//    public int getUpvotes() {
+//        return 0;
+//    }
 }

@@ -15,16 +15,16 @@ public class UpvoteService {
     private final ComplaintRepository complaintRepository;
     private final UserRepository userRepository;
 
-    public long toggleUpvote(Long complaintId, String userPhone) {
+    public long toggleUpvote(Long complaintId, String userEmail) {
 
-        User user = userRepository.findByPhone(userPhone)
+        User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Complaint complaint = complaintRepository.findById(complaintId)
                 .orElseThrow(() -> new RuntimeException("Complaint not found"));
 
         // 🔴 Rule: User cannot upvote their own complaint
-        if (complaint.getUserPhone().equals(userPhone)) {
+        if (complaint.getUserEmail().equals(userEmail)) {
             throw new RuntimeException("You cannot upvote your own complaint");
         }
 

@@ -1,5 +1,6 @@
 package com.app.FixItNow_backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,6 +30,7 @@ public class Upvote {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "complaint_id")
+    @JsonIgnore
     private Complaint complaint;
 
     private LocalDateTime createdAt;

@@ -132,14 +132,6 @@
 // }
 
 
-
-
-
-
-
-
-
-
 package com.app.FixItNow_backend.config;
 
 import com.app.FixItNow_backend.security.JwtAuthenticationFilter;
@@ -169,47 +161,138 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//
+//        http
+//            // Disable CSRF because we are using JWT (stateless)
+//            .csrf(csrf -> csrf.disable())
+//
+//            // Enable CORS
+//            .cors(cors -> {})
+//
+//            // Stateless session management
+//            .sessionManagement(session ->
+//                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//            )
+//
+//            // Define access rules
+//            .authorizeHttpRequests(auth -> auth
+//
+//                // Allow OPTIONS requests for CORS
+//                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+//
+//                // Public routes
+//                .requestMatchers("/").permitAll()
+//                .requestMatchers("/actuator/health").permitAll()
+//                .requestMatchers("/api/auth/**").permitAll()
+//                .requestMatchers("/uploads/**").permitAll()
+//
+//                // Role-based routes
+//                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+//                .requestMatchers("/api/user/**").hasRole("USER")
+//                .requestMatchers("/api/department/**").hasRole("DEPARTMENT_AUTHORITY")
+//
+//                // Fallback: any other request requires authentication
+//                .anyRequest().authenticated()
+//            )
+//
+//            // Add JWT filter before the default authentication filter
+//            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+//
+//        return http.build();
+//    }
+
+
+
+//
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .csrf(csrf -> csrf.disable())
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers("/api/auth/**").permitAll()
+//                        .requestMatchers("/actuator/health").permitAll()
+//                        .anyRequest().authenticated()
+//                );
+//
+//        return http.build();
+//    }
+
+
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // your React port
+//        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//        configuration.setAllowedHeaders(List.of("*"));
+//        configuration.setAllowCredentials(true);
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return source;
+//    }
+
+
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            // Disable CSRF because we are using JWT (stateless)
-            .csrf(csrf -> csrf.disable())
+                // Disable CSRF (JWT is stateless)
+                .csrf(csrf -> csrf.disable())
 
-            // Enable CORS
-            .cors(cors -> {})
+                // 🔥 Enable CORS (VERY IMPORTANT)
+                .cors(cors -> {})
 
-            // Stateless session management
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+                // Stateless session
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
 
-            // Define access rules
-            .authorizeHttpRequests(auth -> auth
+                // Authorization rules
+                .authorizeHttpRequests(auth -> auth
 
-                // Allow OPTIONS requests for CORS
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Allow preflight requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Public routes
-                .requestMatchers("/").permitAll()
-                .requestMatchers("/actuator/health").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/uploads/**").permitAll()
+                        // Public routes
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
 
-                // Role-based routes
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/user/**").hasRole("USER")
-                .requestMatchers("/api/department/**").hasRole("DEPARTMENT_AUTHORITY")
 
-                // Fallback: any other request requires authentication
-                .anyRequest().authenticated()
-            )
+//                                .requestMatchers("/api/admin/**").permitAll()
+                        // Role routes
+                        .requestMatchers(HttpMethod.PUT, "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/user/**").hasRole("USER")
+                        .requestMatchers("/api/department/**").hasRole("DEPARTMENT_AUTHORITY")
 
-            // Add JWT filter before the default authentication filter
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        // Everything else needs auth
+                        .anyRequest().authenticated()
+                )
+
+                // 🔥 Add JWT filter
+                .addFilterBefore(jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Global CORS configuration
     @Bean

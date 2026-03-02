@@ -23,6 +23,9 @@ public class Department {
 
     private String description;
 
+    private String email;
+    private String password;
+
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "department")
@@ -30,4 +33,5 @@ public class Department {
 
     @OneToMany(mappedBy = "assignedDepartment")
     private List<Complaint> complaints;
+
 }

@@ -1,15 +1,15 @@
 package com.app.FixItNow_backend.controller;
 
-import com.app.FixItNow_backend.dto.AuthResponse;
-import com.app.FixItNow_backend.dto.LoginRequest;
+import com.app.FixItNow_backend.dto.*;
+import com.app.FixItNow_backend.exception.InvalidCredentialsException;
 import com.app.FixItNow_backend.security.JwtService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import com.app.FixItNow_backend.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import com.app.FixItNow_backend.dto.SignupRequest;
 import com.app.FixItNow_backend.entity.Role;
 import com.app.FixItNow_backend.entity.User;
 
@@ -27,52 +27,104 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
 
 
-    @PostMapping("/login")
+@PostMapping("/user/login")
     public AuthResponse login(@RequestBody LoginRequest request) {
 
-        // 1️⃣ Find user by phone
-        var user = userRepository.findByPhone(request.getPhone())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() ->
+                        new InvalidCredentialsException("Invalid email or password"));
 
-        // 2️⃣ Check password using BCrypt
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid password");
+            throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        // 3️⃣ Generate tokens
-        String accessToken = jwtService.generateAccessToken(user.getPhone());
-        String refreshToken = jwtService.generateRefreshToken(user.getPhone());
+        String accessToken = jwtService.generateAccessToken(user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .role(user.getRole().name())  // assuming role is enum
+                .role(user.getRole().name())
                 .build();
     }
 
 
-    @PostMapping("/signup")
-    public String signup(@RequestBody SignupRequest request) {
+    private AuthResponse generateAuthResponse(User user) {
 
-        // 1️⃣ Validate phone format (Indian format: 10 digits, starts 6-9)
-        if (!request.getPhone().matches("^[6-9]\\d{9}$")) {
-            throw new RuntimeException("Invalid phone number format");
+        String accessToken = jwtService.generateAccessToken(user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .role(user.getRole().name())
+                .build();
+    }
+
+    @PostMapping("/admin/login")
+    public AuthResponse adminLogin(@Valid @RequestBody AdminLoginRequest request) {
+
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
+
+        if (user.getRole() != Role.ADMIN) {
+            throw new InvalidCredentialsException("Invalid credentials");
+        }
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Invalid credentials");
+        }
+
+        return generateAuthResponse(user);
+    }
+
+    @PostMapping("/department/login")
+    public AuthResponse departmentLogin(@Valid @RequestBody DepartmentLoginRequest request) {
+
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
+
+        if (user.getRole() != Role.DEPARTMENT_AUTHORITY) {
+            throw new InvalidCredentialsException("Invalid credentials");
+        }
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Invalid credentials");
+        }
+
+        String accessToken = jwtService.generateAccessToken(user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .role(user.getRole().name())
+                .build();
+    }
+
+    @PostMapping("/signup")
+    public String signup(@Valid @RequestBody SignupRequest request) {
+
+        // 1️⃣ Check if email already exists
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already registered");
         }
 
         // 2️⃣ Check if phone already exists
-        if (userRepository.findByPhone(request.getPhone()).isPresent()) {
+        if (userRepository.existsByPhone(request.getPhone())) {
             throw new RuntimeException("Phone number already registered");
         }
 
         // 3️⃣ Create new user
         User user = User.builder()
                 .fullName(request.getFullName())
+                .email(request.getEmail())
                 .phone(request.getPhone())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
                 .phoneVerified(true)
                 .emailVerified(false)
-
+                .createdAt(java.time.LocalDateTime.now())
                 .latitude(request.getLatitude())
                 .longitude(request.getLongitude())
                 .areaName(request.getAreaName())
@@ -82,6 +134,7 @@ public class AuthController {
 
         return "User registered successfully";
     }
+
 
 
 

@@ -1,6 +1,7 @@
 package com.app.FixItNow_backend.repository;
 
 import com.app.FixItNow_backend.entity.Complaint;
+import com.app.FixItNow_backend.entity.ComplaintStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,10 +10,11 @@ import java.util.List;
 
 public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
 
-    List<Complaint> findByUserPhone(String userPhone);
+    List<Complaint> findByUserEmail(String userEmail);
 
     List<Complaint> findByAssignedDepartmentPhone(String assignedDepartmentPhone);
 
+    long countByStatus(ComplaintStatus status);
 
     @Query(value = """
 SELECT * FROM complaint c

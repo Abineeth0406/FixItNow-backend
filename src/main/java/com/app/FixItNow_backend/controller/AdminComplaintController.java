@@ -1,12 +1,10 @@
 package com.app.FixItNow_backend.controller;
-import com.app.FixItNow_backend.entity.User;
-import com.app.FixItNow_backend.entity.Role;
+import com.app.FixItNow_backend.entity.*;
 import com.app.FixItNow_backend.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.app.FixItNow_backend.dto.ApproveRequest;
-import com.app.FixItNow_backend.entity.Complaint;
-import com.app.FixItNow_backend.entity.ComplaintStatus;
 import com.app.FixItNow_backend.service.ComplaintService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -32,8 +30,8 @@ public class AdminComplaintController {
     public Complaint approveComplaint(
             @PathVariable Long id,
             @RequestBody ApproveRequest request) {
-
-        return complaintService.approveAndAssign(id, request.getDepartmentPhone());
+System.out.println("Approved complaint ");
+        return complaintService.approveAndAssign(id, request.getDepartmentEmail(), request.getPriority());
     }
 
 
@@ -49,7 +47,7 @@ public class AdminComplaintController {
 
     @PutMapping("/{id}/priority")
     public Complaint setPriority(@PathVariable Long id,
-                                 @RequestParam Integer priority) {
+                                 @RequestParam PriorityLevel priority) {
         return complaintService.setPriority(id, priority);
     }
 
@@ -102,17 +100,36 @@ public class AdminComplaintController {
         }
 
         User department = User.builder()
-                .fullName(request.getDeptName())   // deptName saved here
-                .phone(request.getDeptId())        // deptId saved in phone field
+                .fullName(request.getDeptName())
+                .email(request.getDeptId())   // ✅ USE EMAIL
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.DEPARTMENT_AUTHORITY)
-                .phoneVerified(true)
-                .emailVerified(false)
+                .emailVerified(true)
+                .phoneVerified(false)
                 .build();
 
         userRepository.save(department);
 
         return "Department authority created successfully";
+    }
+
+
+    @GetMapping("/departments")
+    public List<User> getAllDepartments() {
+        return userRepository.findByRole(Role.DEPARTMENT_AUTHORITY);
+    }
+
+
+    @PutMapping("/{id}/resolve")
+    public Complaint resolveComplaint(@PathVariable Long id) {
+        return complaintService.markResolvedByAdmin(id);
+    }
+
+
+    @PutMapping("/admin/verify/{id}")
+    public ResponseEntity<?> verifyComplaint(@PathVariable Long id) {
+        complaintService.markAsCompleted(id);
+        return ResponseEntity.ok("Complaint marked as completed");
     }
 
 

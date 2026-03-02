@@ -6,8 +6,10 @@ import lombok.RequiredArgsConstructor;
 //import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -22,10 +24,10 @@ public class DepartmentComplaintController {
         return complaintService.markInProgress(id);
     }
 
-    @PutMapping("/{id}/resolve")
-    public Complaint resolveComplaint(@PathVariable Long id) {
-        return complaintService.markResolved(id);
-    }
+//    @PutMapping("/{id}/resolve")
+//    public Complaint resolveComplaint(@PathVariable Long id) {
+//        return complaintService.markResolved(id);
+//    }
 
     @GetMapping
     public List<Complaint> getAssignedComplaints(Authentication authentication) {
@@ -33,6 +35,16 @@ public class DepartmentComplaintController {
         String phone = authentication.getName();
 
         return complaintService.getComplaintsByDepartment(phone);
+    }
+
+
+//   import org.springframework.web.multipart.MultipartFile;
+
+    @PutMapping("/{id}/upload-fixed-image")
+    public Complaint uploadFixedImage(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) throws IOException {
+        return complaintService.uploadResolvedImage(id, file);
     }
 
 }

@@ -27,6 +27,9 @@ public class DataInitializer implements CommandLineRunner {
                     .phone(adminPhone)
                     .password(passwordEncoder.encode("admin123"))
                     .role(Role.ADMIN)
+                    .adminId("ADM001")
+                    .email("admin@fixitnow.com")
+
                     .phoneVerified(true)
                     .emailVerified(false)
                     .build();
